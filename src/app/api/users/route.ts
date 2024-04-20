@@ -10,13 +10,13 @@ import { validateEmail } from "@/utils/emailValidation";
 export async function POST(req: NextRequest) {
   const prisma = new PrismaClient();
   const { email, password } = await req.json();
+  if (Auth(getQuery(req))) {
+    return Response.json({ status: 403, msg: "Invalid Api Key" });
+  }
   try {
     const userDatas = await prisma.users.findUnique({
       where: { email },
     });
-    if (Auth(getQuery(req))) {
-      return Response.json({ status: 403, msg: "Invalid Api Key" });
-    }
     if (!userDatas) {
       return Response.json({
         status: 404,
@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       if (await bcrypt.compare(password, userDatas.password)) {
         return Response.json({
           data: {
+            isLogin: true,
             id: userDatas.id,
             user: userDatas.user,
             email: userDatas.email,
@@ -38,3 +39,7 @@ export async function POST(req: NextRequest) {
     return Response.json(err);
   }
 }
+
+// export async function POST(req: NextRequest) {
+
+// }
